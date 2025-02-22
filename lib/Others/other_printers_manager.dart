@@ -157,9 +157,8 @@ class OtherPrinterManager {
         }
         return;
       } catch (e) {
-        log('Failed to print data to device $e');
-        String errorMessage = e.toString().replaceAll("Exception: ", "");
-        throw Exception(errorMessage);
+        log('Failed to print data to device\$e');
+        throw Exception('Failed to print data to device\$e');
       }
     }
   }
