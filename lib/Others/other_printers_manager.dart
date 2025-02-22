@@ -40,7 +40,6 @@ class OtherPrinterManager {
         await _usbSubscription?.cancel();
       }
     } catch (e) {
-      log('Failed to stop scanning for devices $e');
       throw Exception("Failed to stop scanning for devices $e");
     }
   }
@@ -86,7 +85,6 @@ class OtherPrinterManager {
         final bt = BluetoothDevice.fromId(device.address!);
         await bt.disconnect();
       } catch (e) {
-        log('Failed to disconnect device');
         throw Exception("Failed to disconnect device");
       }
     }
@@ -111,59 +109,57 @@ class OtherPrinterManager {
       }
     } else {
       try {
-        if (printer.address != null) {
-          final device = BluetoothDevice.fromId(printer.address!);
-          if (!device.isConnected) {
-            log('Device is not connected');
-            throw Exception("Device is not connected");
-          }
-          final services = (await device.discoverServices()).skipWhile(
-              (value) => value.characteristics
-                  .where((element) => element.properties.write)
-                  .isEmpty);
-          BluetoothCharacteristic? writecharacteristic;
-          for (var service in services) {
-            for (var characteristic in service.characteristics) {
-              if (characteristic.properties.write) {
-                writecharacteristic = characteristic;
-                break;
-              }
-            }
-          }
-          if (writecharacteristic == null) {
-            log('No write characteristic found');
-            throw Exception("No write characteristic found");
-          }
-          if (longData) {
-            int mtu = (await device.mtu.first) - 30;
-            final numberOfTimes = bytes.length / mtu;
-            final numberOfTimesInt = numberOfTimes.toInt();
-            int timestoPrint = 0;
-            if (numberOfTimes > numberOfTimesInt) {
-              timestoPrint = numberOfTimesInt + 1;
-            } else {
-              timestoPrint = numberOfTimesInt;
-            }
-            for (var i = 0; i < timestoPrint; i++) {
-              final data = bytes.sublist(
-                  i * mtu,
-                  ((i + 1) * mtu) > bytes.length
-                      ? bytes.length
-                      : ((i + 1) * mtu));
-              await writecharacteristic.write(data);
-            }
-          } else {
-            await writecharacteristic.write(bytes);
-          }
-          return;
-        } else {
-          log('Failed to print data to device\nPlease check connection device');
+        if (printer.address == null) {
           throw Exception(
               "Failed to print data to device\nPlease check connection device");
         }
+
+        final device = BluetoothDevice.fromId(printer.address!);
+        if (!device.isConnected) {
+          throw Exception("Device is not connected");
+        }
+        final services = (await device.discoverServices()).skipWhile((value) =>
+            value.characteristics
+                .where((element) => element.properties.write)
+                .isEmpty);
+        BluetoothCharacteristic? writecharacteristic;
+        for (var service in services) {
+          for (var characteristic in service.characteristics) {
+            if (characteristic.properties.write) {
+              writecharacteristic = characteristic;
+              break;
+            }
+          }
+        }
+        if (writecharacteristic == null) {
+          throw Exception("No write characteristic found");
+        }
+        if (longData) {
+          int mtu = (await device.mtu.first) - 30;
+          final numberOfTimes = bytes.length / mtu;
+          final numberOfTimesInt = numberOfTimes.toInt();
+          int timestoPrint = 0;
+          if (numberOfTimes > numberOfTimesInt) {
+            timestoPrint = numberOfTimesInt + 1;
+          } else {
+            timestoPrint = numberOfTimesInt;
+          }
+          for (var i = 0; i < timestoPrint; i++) {
+            final data = bytes.sublist(
+                i * mtu,
+                ((i + 1) * mtu) > bytes.length
+                    ? bytes.length
+                    : ((i + 1) * mtu));
+            await writecharacteristic.write(data);
+          }
+        } else {
+          await writecharacteristic.write(bytes);
+        }
+        return;
       } catch (e) {
         log('Failed to print data to device $e');
-        throw Exception("Failed to print data to device $e");
+        String errorMessage = e.toString().replaceAll("Exception: ", "");
+        throw Exception(errorMessage);
       }
     }
   }
