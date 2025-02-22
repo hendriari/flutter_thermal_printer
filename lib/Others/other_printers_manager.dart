@@ -41,6 +41,7 @@ class OtherPrinterManager {
       }
     } catch (e) {
       log('Failed to stop scanning for devices $e');
+      throw Exception("Failed to stop scanning for devices $e");
     }
   }
 
@@ -86,6 +87,7 @@ class OtherPrinterManager {
         await bt.disconnect();
       } catch (e) {
         log('Failed to disconnect device');
+        throw Exception("Failed to disconnect device");
       }
     }
   }
@@ -105,13 +107,14 @@ class OtherPrinterManager {
         );
       } catch (e) {
         log("FlutterThermalPrinter: Unable to Print Data $e");
+        throw Exception("FlutterThermalPrinter: Unable to Print Data $e");
       }
     } else {
       try {
         final device = BluetoothDevice.fromId(printer.address!);
         if (!device.isConnected) {
           log('Device is not connected');
-          return;
+          throw Exception("Device is not connected");
         }
         final services = (await device.discoverServices()).skipWhile((value) =>
             value.characteristics
@@ -128,7 +131,7 @@ class OtherPrinterManager {
         }
         if (writecharacteristic == null) {
           log('No write characteristic found');
-          return;
+          throw Exception("No write characteristic found");
         }
         if (longData) {
           int mtu = (await device.mtu.first) - 30;
@@ -154,6 +157,7 @@ class OtherPrinterManager {
         return;
       } catch (e) {
         log('Failed to print data to device $e');
+        throw Exception("Failed to print data to device $e");
       }
     }
   }
@@ -221,6 +225,7 @@ class OtherPrinterManager {
       sortDevices();
     } catch (e) {
       log("$e [USB Connection]");
+      rethrow;
     }
   }
 
