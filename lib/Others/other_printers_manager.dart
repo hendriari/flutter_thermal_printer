@@ -111,50 +111,56 @@ class OtherPrinterManager {
       }
     } else {
       try {
-        final device = BluetoothDevice.fromId(printer.address!);
-        if (!device.isConnected) {
-          log('Device is not connected');
-          throw Exception("Device is not connected");
-        }
-        final services = (await device.discoverServices()).skipWhile((value) =>
-            value.characteristics
-                .where((element) => element.properties.write)
-                .isEmpty);
-        BluetoothCharacteristic? writecharacteristic;
-        for (var service in services) {
-          for (var characteristic in service.characteristics) {
-            if (characteristic.properties.write) {
-              writecharacteristic = characteristic;
-              break;
+        if (printer.address != null) {
+          final device = BluetoothDevice.fromId(printer.address!);
+          if (!device.isConnected) {
+            log('Device is not connected');
+            throw Exception("Device is not connected");
+          }
+          final services = (await device.discoverServices()).skipWhile(
+              (value) => value.characteristics
+                  .where((element) => element.properties.write)
+                  .isEmpty);
+          BluetoothCharacteristic? writecharacteristic;
+          for (var service in services) {
+            for (var characteristic in service.characteristics) {
+              if (characteristic.properties.write) {
+                writecharacteristic = characteristic;
+                break;
+              }
             }
           }
-        }
-        if (writecharacteristic == null) {
-          log('No write characteristic found');
-          throw Exception("No write characteristic found");
-        }
-        if (longData) {
-          int mtu = (await device.mtu.first) - 30;
-          final numberOfTimes = bytes.length / mtu;
-          final numberOfTimesInt = numberOfTimes.toInt();
-          int timestoPrint = 0;
-          if (numberOfTimes > numberOfTimesInt) {
-            timestoPrint = numberOfTimesInt + 1;
+          if (writecharacteristic == null) {
+            log('No write characteristic found');
+            throw Exception("No write characteristic found");
+          }
+          if (longData) {
+            int mtu = (await device.mtu.first) - 30;
+            final numberOfTimes = bytes.length / mtu;
+            final numberOfTimesInt = numberOfTimes.toInt();
+            int timestoPrint = 0;
+            if (numberOfTimes > numberOfTimesInt) {
+              timestoPrint = numberOfTimesInt + 1;
+            } else {
+              timestoPrint = numberOfTimesInt;
+            }
+            for (var i = 0; i < timestoPrint; i++) {
+              final data = bytes.sublist(
+                  i * mtu,
+                  ((i + 1) * mtu) > bytes.length
+                      ? bytes.length
+                      : ((i + 1) * mtu));
+              await writecharacteristic.write(data);
+            }
           } else {
-            timestoPrint = numberOfTimesInt;
+            await writecharacteristic.write(bytes);
           }
-          for (var i = 0; i < timestoPrint; i++) {
-            final data = bytes.sublist(
-                i * mtu,
-                ((i + 1) * mtu) > bytes.length
-                    ? bytes.length
-                    : ((i + 1) * mtu));
-            await writecharacteristic.write(data);
-          }
+          return;
         } else {
-          await writecharacteristic.write(bytes);
+          log('Failed to print data to device\nPlease check connection device');
+          throw Exception(
+              "Failed to print data to device\nPlease check connection device");
         }
-        return;
       } catch (e) {
         log('Failed to print data to device $e');
         throw Exception("Failed to print data to device $e");
