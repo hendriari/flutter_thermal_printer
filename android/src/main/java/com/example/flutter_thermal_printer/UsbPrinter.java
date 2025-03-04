@@ -38,25 +38,40 @@ public class UsbPrinter implements EventChannel.StreamHandler {
     private BroadcastReceiver usbStateChangeReceiver;
 
     private void createUsbStateChangeReceiver() {
-        usbStateChangeReceiver =  new BroadcastReceiver() {
+        usbStateChangeReceiver = new BroadcastReceiver() {
             @SuppressLint("LongLogTag")
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (Objects.equals(intent.getAction(), ACTION_USB_ATTACHED)) {
-                    UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                    UsbDevice device;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // API 33+
+                        device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice.class);
+                    } else {
+                        device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                    }
                     Log.d(TAG, "ACTION_USB_ATTACHED");
                     sendDevice(device);
                 } else if (Objects.equals(intent.getAction(), ACTION_USB_DETACHED)) {
-                    UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                    UsbDevice device;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // API 33+
+                        device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice.class);
+                    } else {
+                        device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                    }
                     Log.d(TAG, "ACTION_USB_DETACHED");
                     sendDevice(device);
                 }
                 Log.d(TAG, "ACTION_USB_PERMISSION " + (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)));
                 if (Objects.equals(intent.getAction(), ACTION_USB_PERMISSION)) {
                     synchronized (this) {
-                        UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                        UsbDevice device;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // API 33+
+                            device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice.class);
+                        } else {
+                            device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                        }
                         boolean permissionGranted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false);
-                        if(permissionGranted) {
+                        if (permissionGranted) {
                             Log.d(TAG, "Permission granted for device " + device);
                             sendDevice(device);
                         } else {
