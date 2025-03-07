@@ -30,7 +30,8 @@ class WindowPrinterManager {
     }
   }
 
-  final StreamController<List<Printer>> _devicesstream = StreamController<List<Printer>>.broadcast();
+  final StreamController<List<Printer>> _devicesstream =
+      StreamController<List<Printer>>.broadcast();
 
   Stream<List<Printer>> get devicesStream => _devicesstream.stream;
 
@@ -77,7 +78,9 @@ class WindowPrinterManager {
       address: device.address!,
       serviceId: service,
     );
-    final characteristic = characteristics.firstWhere((element) => element.properties.write ?? false).uuid;
+    final characteristic = characteristics
+        .firstWhere((element) => element.properties.write ?? false)
+        .uuid;
     final mtusize = await WinBle.getMaxMtuSize(device.address!);
     if (longData) {
       int mtu = mtusize - 50;
@@ -93,7 +96,8 @@ class WindowPrinterManager {
         timestoPrint = numberOfTimesInt;
       }
       for (var i = 0; i < timestoPrint; i++) {
-        final data = bytes.sublist(i * mtu, ((i + 1) * mtu) > bytes.length ? bytes.length : ((i + 1) * mtu));
+        final data = bytes.sublist(i * mtu,
+            ((i + 1) * mtu) > bytes.length ? bytes.length : ((i + 1) * mtu));
         await WinBle.write(
           address: device.address!,
           service: service,
@@ -116,7 +120,7 @@ class WindowPrinterManager {
   StreamSubscription? _usbSubscription;
 
   // Getprinters
-  void getPrinters({
+  Future<void> getPrinters({
     Duration refreshDuration = const Duration(seconds: 5),
     List<ConnectionType> connectionTypes = const [
       ConnectionType.BLE,
@@ -149,7 +153,8 @@ class WindowPrinterManager {
     List<Printer> list = [];
     if (connectionTypes.contains(ConnectionType.USB)) {
       _usbSubscription?.cancel();
-      _usbSubscription = Stream.periodic(refreshDuration, (x) => x).listen((event) async {
+      _usbSubscription =
+          Stream.periodic(refreshDuration, (x) => x).listen((event) async {
         final devices = PrinterNames(PRINTER_ENUM_LOCAL);
         List<Printer> templist = [];
         for (var e in devices.all()) {

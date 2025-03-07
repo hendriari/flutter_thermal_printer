@@ -18,13 +18,15 @@ class OtherPrinterManager {
     return _instance!;
   }
 
-  final StreamController<List<Printer>> _devicesstream = StreamController<List<Printer>>.broadcast();
+  final StreamController<List<Printer>> _devicesstream =
+      StreamController<List<Printer>>.broadcast();
 
   Stream<List<Printer>> get devicesStream => _devicesstream.stream;
   StreamSubscription? subscription;
 
   static String channelName = 'flutter_thermal_printer/events';
   EventChannel eventChannel = EventChannel(channelName);
+
   bool get isIos => !kIsWeb && (Platform.isIOS || Platform.isMacOS);
 
   // Stop scanning for BLE devices
@@ -46,10 +48,10 @@ class OtherPrinterManager {
   }
 
   Future<bool> connect(Printer device) async {
-    if (device.connectionType == ConnectionType.USB) {
-      return await FlutterThermalPrinterPlatform.instance.connect(device);
-    } else {
-      try {
+    try {
+      if (device.connectionType == ConnectionType.USB) {
+        return await FlutterThermalPrinterPlatform.instance.connect(device);
+      } else {
         bool isConnected = false;
         final bt = BluetoothDevice.fromId(device.address!);
         await bt.connect();
@@ -61,22 +63,23 @@ class OtherPrinterManager {
         await Future.delayed(const Duration(seconds: 3));
         await stream.cancel();
         return isConnected;
-      } catch (e) {
-        return false;
       }
+    } catch (e) {
+      throw Exception(e.toString());
     }
   }
 
   Future<bool> isConnected(Printer device) async {
-    if (device.connectionType == ConnectionType.USB) {
-      return await FlutterThermalPrinterPlatform.instance.isConnected(device);
-    } else {
-      try {
+    try {
+      if (device.connectionType == ConnectionType.USB) {
+        return await FlutterThermalPrinterPlatform.instance.isConnected(device);
+      } else {
         final bt = BluetoothDevice.fromId(device.address!);
         return bt.isConnected;
-      } catch (e) {
-        return false;
       }
+    } catch (e) {
+      log("Disconnect from printer : $e");
+      return false;
     }
   }
 
@@ -86,8 +89,11 @@ class OtherPrinterManager {
         final bt = BluetoothDevice.fromId(device.address!);
         await bt.disconnect();
       } catch (e) {
+        log("Disconnect printer bluetooth failed: $e");
         throw Exception("Failed to disconnect device");
       }
+    } else {
+      log("This connection type not support to disconnect device");
     }
   }
 
@@ -120,8 +126,10 @@ class OtherPrinterManager {
           throw Exception("Device is not connected");
         }
 
-        final services =
-            (await device.discoverServices()).skipWhile((value) => value.characteristics.where((element) => element.properties.write).isEmpty);
+        final services = (await device.discoverServices()).skipWhile((value) =>
+            value.characteristics
+                .where((element) => element.properties.write)
+                .isEmpty);
 
         BluetoothCharacteristic? writeCharacteristic;
         for (var service in services) {
@@ -132,7 +140,6 @@ class OtherPrinterManager {
             }
           }
         }
-
 
         if (writeCharacteristic == null) {
           throw Exception("No write characteristic found");
@@ -223,6 +230,7 @@ class OtherPrinterManager {
       sortDevices();
     } catch (e) {
       log("$e [USB Connection]");
+      throw Exception("Get usb printer failed: $e");
     }
   }
 
@@ -305,7 +313,8 @@ class OtherPrinterManager {
   }
 
   void _updateOrAddPrinter(Printer printer) {
-    final index = _devices.indexWhere((device) => device.address == printer.address);
+    final index =
+        _devices.indexWhere((device) => device.address == printer.address);
     if (index == -1) {
       _devices.add(printer);
     } else {
@@ -315,7 +324,8 @@ class OtherPrinterManager {
   }
 
   void sortDevices() {
-    _devices.removeWhere((element) => element.name == null || element.name == '');
+    _devices
+        .removeWhere((element) => element.name == null || element.name == '');
     // remove items having same vendorId
     Set<String> seen = {};
     _devices.retainWhere((element) {
