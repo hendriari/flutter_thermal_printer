@@ -81,12 +81,12 @@ class FlutterThermalPrinter {
     bool androidUsesFineLocation = false,
   }) async {
     if (Platform.isWindows) {
-      await WindowPrinterManager.instance.getPrinters(
+      WindowPrinterManager.instance.getPrinters(
         refreshDuration: refreshDuration,
         connectionTypes: connectionTypes,
       );
     } else {
-      await OtherPrinterManager.instance.getPrinters(
+      OtherPrinterManager.instance.getPrinters(
         connectionTypes: connectionTypes,
         androidUsesFineLocation: androidUsesFineLocation,
       );
@@ -95,9 +95,9 @@ class FlutterThermalPrinter {
 
   Future<void> stopScan() async {
     if (Platform.isWindows) {
-      await WindowPrinterManager.instance.stopscan();
+      WindowPrinterManager.instance.stopscan();
     } else {
-      await OtherPrinterManager.instance.stopScan();
+      OtherPrinterManager.instance.stopScan();
     }
   }
 
