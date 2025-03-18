@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
+
 import 'network_print_result.dart';
 
 class FlutterThermalPrinterNetwork {
@@ -6,7 +8,7 @@ class FlutterThermalPrinterNetwork {
   int _port = 9100;
   bool _isConnected = false;
   Duration _timeout = const Duration(seconds: 5);
-  late Socket _socket;
+  Socket? _socket;
 
   FlutterThermalPrinterNetwork(
     String host, {
@@ -18,36 +20,43 @@ class FlutterThermalPrinterNetwork {
     _timeout = timeout;
   }
 
-  Future<NetworkPrintResult> connect({Duration? timeout = const Duration(seconds: 5)}) async {
+  Future<NetworkPrintResult> connect(
+      {Duration? timeout = const Duration(seconds: 5)}) async {
     try {
       _socket = await Socket.connect(_host, _port, timeout: _timeout);
       _isConnected = true;
+      debugPrint("Success connect Printer");
       return Future<NetworkPrintResult>.value(NetworkPrintResult.success);
     } catch (e) {
       _isConnected = false;
+      debugPrint("Failed connect $e");
       return Future<NetworkPrintResult>.value(NetworkPrintResult.timeout);
     }
   }
 
-  Future<NetworkPrintResult> printTicket(List<int> data, {bool isDisconnect = true}) async {
+  Future<NetworkPrintResult> printTicket(List<int> data,
+      {bool isDisconnect = true}) async {
     try {
       if (!_isConnected) {
         await connect();
       }
-      _socket.add(data);
+      _socket?.add(data);
       if (isDisconnect) {
         await disconnect();
       }
       return Future<NetworkPrintResult>.value(NetworkPrintResult.success);
     } catch (e) {
+      debugPrint("Failed connect $e");
       return Future<NetworkPrintResult>.value(NetworkPrintResult.timeout);
     }
   }
 
   Future<NetworkPrintResult> disconnect({Duration? timeout}) async {
-    await _socket.flush();
-    await _socket.close();
-    _isConnected = false;
+    if (_socket != null) {
+      await _socket!.flush();
+      await _socket!.close();
+      _isConnected = false;
+    }
     if (timeout != null) {
       await Future.delayed(timeout, () => null);
     }
