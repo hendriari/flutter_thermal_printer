@@ -48,7 +48,7 @@ public class UsbPrinter implements EventChannel.StreamHandler {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // API 33+
                             device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice.class);
                         } else {
-                            device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                            device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                         }
                         Log.d(TAG, "ACTION_USB_ATTACHED, Device found: " + (device != null ? device.getDeviceName() : "null"));
                         sendDevice(device);
@@ -61,7 +61,7 @@ public class UsbPrinter implements EventChannel.StreamHandler {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // API 33+
                             device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice.class);
                         } else {
-                            device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                            device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                         }
                         Log.d(TAG, "ACTION_USB_DETACHED, Device found: " + (device != null ? device.getDeviceName() : "null"));
                         sendDevice(device);
@@ -75,7 +75,7 @@ public class UsbPrinter implements EventChannel.StreamHandler {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // API 33+
                                 device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice.class);
                             } else {
-                                device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                                device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                             }
                             boolean permissionGranted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false);
                             if (permissionGranted) {
@@ -147,11 +147,11 @@ public class UsbPrinter implements EventChannel.StreamHandler {
     public List<Map<String, Object>> getUsbDevicesList() {
         UsbManager m = (UsbManager) context.getSystemService(USB_SERVICE);
         HashMap<String, UsbDevice> usbDevices = m.getDeviceList();
-        List<Map<String, Object>> data = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> data = new ArrayList<>();
         for (Map.Entry<String, UsbDevice> entry : usbDevices.entrySet()) {
             UsbDevice device = entry.getValue();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                HashMap<String, Object> deviceData = new HashMap<String, Object>();
+                HashMap<String, Object> deviceData = new HashMap<>();
                 deviceData.put("name", device.getProductName());
                 deviceData.put("vendorId", String.valueOf(device.getVendorId()));
                 deviceData.put("productId", String.valueOf(device.getProductId()));
@@ -279,7 +279,7 @@ public class UsbPrinter implements EventChannel.StreamHandler {
         connection.releaseInterface(device.getInterface(0));
         connection.close();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            HashMap<String, Object> deviceData = new HashMap<String, Object>();
+            HashMap<String, Object> deviceData = new HashMap<>();
             deviceData.put("name", device.getProductName());
             deviceData.put("vendorId", String.valueOf(device.getVendorId()));
             deviceData.put("productId", String.valueOf(device.getProductId()));
